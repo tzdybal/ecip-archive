@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  <!-- Enable responsiveness on mobile devices-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <meta property="og:title" content="34-SIGN: Message Signing and Verification in JSON RPC">
+  
+  <meta property="og:site_name" content="Ethereum Classic Improvement Proposals">
+  <meta name="author" content="Wei Tang">
+
+  
+  <meta property="og:type" content="article">
+  <meta property="article:published_time" content="2019-03-19T09:23:20+01:00">
+  
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="34-SIGN: Message Signing and Verification in JSON RPC">
+  
+  <meta name="twitter:site" content="@sorpaas">
+
+  <title>
+    
+      34-SIGN: Message Signing and Verification in JSON RPC &middot; Ethereum Classic Improvement Proposals
+    
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/styles.css">
+</head>
+
+  <body>
+    <!-- Target for toggling the sidebar `.sidebar-checkbox` is for regular
+     styles, `#sidebar-checkbox` for behavior. -->
+<input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox">
+
+<!-- Toggleable sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-item">
+    <p><p>Collections of Ethereum Classic Improvement Proposals</p>
+</p>
+  </div>
+
+  <nav class="sidebar-nav">
+    
+
+    <a class="sidebar-nav-item" href="/">
+      Home
+      </a>
+    
+    
+    
+    
+    <a class="sidebar-nav-item" href="/raw/">Raw</a>
+    
+    
+    
+    <a class="sidebar-nav-item" href="/draft/">Draft</a>
+    
+    
+    
+    <a class="sidebar-nav-item" href="/stable/">Stable</a>
+    
+    
+    
+    <a class="sidebar-nav-item" href="/deprecated/">Deprecated</a>
+    
+    
+  </nav>
+
+  <div class="sidebar-item">
+    <p>
+      &copy; 2019.
+      All rights reserved.
+      
+    </p>
+  </div>
+</div>
+
+
+    <!-- Wrap is the content to shift when toggling the sidebar. We wrap the
+         content to avoid any CSS collisions with our real content. -->
+    <div class="wrap">
+      
+
+<div class="container content">
+  <div class="page-header">
+    <div class="row">
+      <h1>34-SIGN</h1>
+      <p>Message Signing and Verification in JSON RPC</p>
+
+      <table>
+        <tr><th>URI</th><td>ecips.that.world/34-SIGN</td></tr>
+        <tr><th>Author</th><td>Wei Tang &lt;hi@that.world&gt;</td></tr>
+        
+        <tr><th>Status</th><td>Raw</td></tr>
+        <tr><th>Type</th><td>Standard Track</td></tr>
+        
+        <tr><th>Category</th><td>Protocol</td></tr>
+        
+        
+        <tr><th>Created</th><td>2017-09-05</td></tr>
+        
+        
+        
+        
+        
+      </table>
+    </div>
+  </div>
+
+  <div class="page-content">
+    <h3 id="motivation">Motivation</h3>
+
+<p>The current <code class="highlighter-rouge">eth_sign</code> definition is different across different client implementation, which creates <a href="https://github.com/ethereumproject/go-ethereum/issues/323">many</a> <a href="https://github.com/paritytech/parity/issues/5490">problems</a>. In addition, there is currently no way to verify a signed message using JSON RPC. This ECIP defines two new RPC calls <code class="highlighter-rouge">sign</code> and <code class="highlighter-rouge">recover</code> in a different namespace.</p>
+
+<h3 id="namespace">Namespace</h3>
+
+<p>The author of this ECIP recommends to define the two new RPC in a different namespace rather than <code class="highlighter-rouge">eth</code>. Reusing <code class="highlighter-rouge">eth</code> may cause confusion with the existing <code class="highlighter-rouge">eth_sign</code> RPC call and might further pollute the already huge namespace. We can use <code class="highlighter-rouge">etc</code> namespace, or <code class="highlighter-rouge">key</code> namespace.</p>
+
+<h3 id="specification">Specification</h3>
+
+<h4 id="namespace_sign"><code class="highlighter-rouge">[namespace]_sign</code></h4>
+
+<p>This sign method calculates an Ethereum specific signature of the following Recursive Length Prefix (RLP) structure (call it Message RLP):</p>
+
+<ul>
+  <li>A 16-byte bytearray of magic code: <code class="highlighter-rouge">0x457468657265756d207369676e6d7367</code> (ASCII string of “Ethereum signmsg”).</li>
+  <li>The binary bytearray of the message (<code class="highlighter-rouge">message</code> in parameters).</li>
+</ul>
+
+<p>Similar to <a href="https://github.com/ethereum/wiki/wiki/JSON-RPC#eth_sign">eth_sign</a>, by adding a prefix, it prevents misuse where a malicious DApp can sign arbitrary data (e.g. transaction) and use the signature to impersonate the victim.</p>
+
+<h5 id="parameters">Parameters</h5>
+
+<ol>
+  <li><code class="highlighter-rouge">account</code>: 20 bytes address.</li>
+  <li><code class="highlighter-rouge">message</code>: N bytes message.</li>
+  <li><code class="highlighter-rouge">detached</code>: (Optional) If true, detach the message from the signing result. By default, this is false.</li>
+</ol>
+
+<h5 id="returns">Returns</h5>
+
+<p>The signing process takes the Keccak256 hash of the above Message RLP structure as the actual message to be signed by secp256k1. It uses the specified account private key to sign a private message. The returned data is also a RLP structure (encoded as hex string):</p>
+
+<ul>
+  <li>A 65-byte bytearray of the signature. The first byte is the recovery id, followed by 64 bytes of the signature data.</li>
+  <li>The Keccak256 message hash used in the secp256k1 signing process.</li>
+  <li>(Only included if <code class="highlighter-rouge">detached</code> is false) Message RLP defined above.</li>
+</ul>
+
+<h4 id="namespace_recover"><code class="highlighter-rouge">[namespace]_recover</code></h4>
+
+<p>Recover a signature signed by <code class="highlighter-rouge">[namespace]_sign</code>.</p>
+
+<h5 id="parameters-1">Parameters</h5>
+
+<p><code class="highlighter-rouge">signature</code>: returned data by <code class="highlighter-rouge">[namespace]_sign</code>.</p>
+
+<h5 id="returns-1">Returns</h5>
+
+<p>If the signature is invalid, return <code class="highlighter-rouge">false</code>. Otherwise, returns the following JSON struct.</p>
+
+<ol>
+  <li><code class="highlighter-rouge">address</code>: Address used to sign this message.</li>
+  <li><code class="highlighter-rouge">message</code>: If the signature is not detached, returns the actual message (excluding the prefix “Ethereum signmsg”) of the signature.</li>
+</ol>
+
+  </div>
+
+  <footer class="footer">
+  <small>
+    
+    <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAAAPCAMAAABEF7i9AAAAllBMVEUAAAD///+rsapERER3d3eIiIjMzMzu7u4iIiKUmZO6v7rKzsoODg4RERFVVVUNDQ0NDg0PEA8zMzNLTEtbXltmZmZydnF9gn2AgICPkI+ZmZmqqqq7u7vFxsXIzMgNDQwZGRkgICAhISEkJSMnKCcuMC4xMzE5Ozk7PTtBQkFCQkJDQ0Nna2eGhoaHh4ezuLLGysbd3d1wVGpAAAAA0klEQVR42q2T1xbCIAyGk0CXdlmto3XvPd7/5QRL1432WHI4XED4+PMHALQHag0JJBlXMNQScx2ibu9PdTnQcY3iErYl6oxbAo/rUrUJA6J5vx0wNNC0gVkMbBPZXtQ8Uf6qpNJwOf0EjmCKto+ce1aSIg9FzTO1/xlYyVeL34FDMC3ZFT+SNXOX6PEsBKm0rIOYPYuGClnsWTxBHtQV1gRhI4UUGJh6EAsPoxdedjUPK+dzT38DDyvNXXYW9wJ43mh4h6ItN8U7Ldv+FN1/WXO8Aed5CQIgC4KiAAAAAElFTkSuQmCC" /></a>This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+    
+    </small>
+</footer>
+
+</div>
+
+    </div>
+
+    <label for="sidebar-checkbox" class="sidebar-toggle"></label>
+
+    <script>
+     (function(document) {
+       var toggle = document.querySelector('.sidebar-toggle');
+       var sidebar = document.querySelector('#sidebar');
+       var checkbox = document.querySelector('#sidebar-checkbox');
+
+       document.addEventListener('click', function(e) {
+         var target = e.target;
+
+         if(!checkbox.checked ||
+            sidebar.contains(target) ||
+            (target === checkbox || target === toggle)) return;
+
+         checkbox.checked = false;
+       }, false);
+     })(document);
+    </script>
+
+  </body>
+</html>

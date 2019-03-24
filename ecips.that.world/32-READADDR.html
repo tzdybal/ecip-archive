@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  <!-- Enable responsiveness on mobile devices-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <meta property="og:title" content="32-READADDR: Readable Address and Transaction Hash">
+  
+  <meta property="og:site_name" content="Ethereum Classic Improvement Proposals">
+  <meta name="author" content="Wei Tang">
+
+  
+  <meta property="og:type" content="article">
+  <meta property="article:published_time" content="2019-03-19T09:23:20+01:00">
+  
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="32-READADDR: Readable Address and Transaction Hash">
+  
+  <meta name="twitter:site" content="@sorpaas">
+
+  <title>
+    
+      32-READADDR: Readable Address and Transaction Hash &middot; Ethereum Classic Improvement Proposals
+    
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/styles.css">
+</head>
+
+  <body>
+    <!-- Target for toggling the sidebar `.sidebar-checkbox` is for regular
+     styles, `#sidebar-checkbox` for behavior. -->
+<input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox">
+
+<!-- Toggleable sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-item">
+    <p><p>Collections of Ethereum Classic Improvement Proposals</p>
+</p>
+  </div>
+
+  <nav class="sidebar-nav">
+    
+
+    <a class="sidebar-nav-item" href="/">
+      Home
+      </a>
+    
+    
+    
+    
+    <a class="sidebar-nav-item" href="/raw/">Raw</a>
+    
+    
+    
+    <a class="sidebar-nav-item" href="/draft/">Draft</a>
+    
+    
+    
+    <a class="sidebar-nav-item" href="/stable/">Stable</a>
+    
+    
+    
+    <a class="sidebar-nav-item" href="/deprecated/">Deprecated</a>
+    
+    
+  </nav>
+
+  <div class="sidebar-item">
+    <p>
+      &copy; 2019.
+      All rights reserved.
+      
+    </p>
+  </div>
+</div>
+
+
+    <!-- Wrap is the content to shift when toggling the sidebar. We wrap the
+         content to avoid any CSS collisions with our real content. -->
+    <div class="wrap">
+      
+
+<div class="container content">
+  <div class="page-header">
+    <div class="row">
+      <h1>32-READADDR</h1>
+      <p>Readable Address and Transaction Hash</p>
+
+      <table>
+        <tr><th>URI</th><td>ecips.that.world/32-READADDR</td></tr>
+        <tr><th>Author</th><td>Wei Tang &lt;hi@that.world&gt;</td></tr>
+        
+        <tr><th>Status</th><td>Raw</td></tr>
+        <tr><th>Type</th><td>Standard Track</td></tr>
+        
+        <tr><th>Category</th><td>Informational</td></tr>
+        
+        
+        <tr><th>Created</th><td>2017-09-02</td></tr>
+        
+        
+        
+        
+        
+      </table>
+    </div>
+  </div>
+
+  <div class="page-content">
+    <h3 id="abstract">Abstract</h3>
+
+<p>This defines convertion of address and transaction hash in Ethereum Classic network to readable strings, similar to how <a href="http://urbit.org/">Urbit</a> handles its ship names. As an example, EthMine’s coinbase address (0xdf7d7e053933b5cc24372f878c90e62dadad5d42) written in this scheme becomes <code class="highlighter-rouge">~hocwyt~misper~difmev~dabryd~livtep~dotpun~nibbex~nalbyn~pocmug~morden</code>.</p>
+
+<p>This ECIP only proposes an optional implementation for wallets and other dapp interface, and does not change anything in the underlying protocol, or in JSON RPC.</p>
+
+<h3 id="motivation">Motivation</h3>
+
+<p>Ethereum Classic’s address is 160-bit, and transaction hash is 256-bit. They’re currently only represented in a long hex string. This, when exchanged by users (for example, in situations where it needs to be transmitted by hand) can result in errors. This ECIP proposes a way to rewrite the 160-bit address or the 256-bit transaction hash in a human readable way similar to Urbit.</p>
+
+<h3 id="specification">Specification</h3>
+
+<p>Group the bytearray of 160-bit addresses or 256-bit transaction hashes into pairs of two bytes. For each pair, use <code class="highlighter-rouge">names</code> at index of the first item of the pair, appended by <code class="highlighter-rouge">endings</code> at index of the second item of the pair. Each pair is also prefixed by <code class="highlighter-rouge">~</code>. The list of <code class="highlighter-rouge">names</code> and <code class="highlighter-rouge">endings</code> can be found in the Python implementation in the appendix.</p>
+
+<h4 id="generate-shorter-address">Generate shorter address</h4>
+
+<p>When an address starts with <code class="highlighter-rouge">2*x</code> bytes of zero, they can be ignored and not included in the readable string generation. The last “prefix” can also be ignored if it is zero.</p>
+
+<h3 id="hex-readability-fix">Hex Readability Fix</h3>
+
+<p>In addition, allow <code class="highlighter-rouge">.</code> to be put in a hex address string for every two bytes. For example, EthMine’s coinbase address (0xdf7d7e053933b5cc24372f878c90e62dadad5d42) becomes <code class="highlighter-rouge">0xdf7d.7e05.3933.b5cc.2437.2f87.8c90.e62d.adad.5d42</code>. Dot is used because it is the same character used in Urbit and in IPv4 addresses.</p>
+
+<h3 id="reference">Reference</h3>
+
+<ul>
+  <li><a href="https://groups.google.com/forum/#!msg/urbit-dev/yTsrEGe9gso/FgLczcg0ocQJ">Request for comment: @p draft</a> in Urbit mailing list.</li>
+  <li><a href="https://github.com/urbit/urbit/issues/488">Issue 488</a> in Urbit repository.</li>
+</ul>
+
+<h3 id="appendix-reference-python-implementation">Appendix: Reference Python Implementation</h3>
+
+<p>Below is a reference Python implementation for this ECIP.</p>
+
+<div class="language-python highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">names</span> <span class="o">=</span> <span class="s">"dozmarbinwansamlitsighidfidlissogdirwacsabwissibrigsoldopmodfoglidhopdardorlorhodfolrintogsilmirholpaslacrovlivdalsatlibtabhanticpidtorbolfosdotlosdilforpilramtirwintadbicdifrocwidbisdasmidloprilnardapmolsanlocnovsitnidtipsicropwitnatpanminritpodmottamtolsavposnapnopsomfinfonbanmorworsipronnorbotwicsocwatdolmagpicdavbidbaltimtasmalligsivtagpadsaldivdactansidfabtarmonranniswolmispallasdismaprabtobrollatlonnodnavfignomnibpagsopralbilhaddocridmocpacravripfaltodtiltinhapmicfanpattaclabmogsimsonpinlomrictapfirhasbosbatpochactidhavsaplindibhosdabbitbarracparloddosbortochilmactomdigfilfasmithobharmighinradmashalraglagfadtopmophabnilnosmilfopfamdatnoldinhatnacrisfotribhocnimlarfitwalrapsarnalmoslandondanladdovrivbacpollaptalpitnambonrostonfodponsovnocsorlavmatmipfip"</span>
+<span class="n">endings</span> <span class="o">=</span> <span class="s">"zodnecbudwessevpersutletfulpensytdurwepserwylsunrypsyxdyrnuphebpeglupdepdysputlughecryttyvsydnexlunmeplutseppesdelsulpedtemledtulmetwenbynhexfebpyldulhetmevruttylwydtepbesdexsefwycburderneppurrysrebdennutsubpetrulsynregtydsupsemwynrecmegnetsecmulnymtevwebsummutnyxrextebfushepbenmuswyxsymselrucdecwexsyrwetdylmynmesdetbetbeltuxtugmyrpelsyptermebsetdutdegtexsurfeltudnuxruxrenwytnubmedlytdusnebrumtynseglyxpunresredfunrevrefmectedrusbexlebduxrynnumpyxrygryxfeptyrtustyclegnemfermertenlusnussyltecmexpubrymtucfyllepdebbermughuttunbylsudpemdevlurdefbusbeprunmelpexdytbyttyplevmylwedducfurfexnulluclennerlexrupnedlecrydlydfenwelnydhusrelrudneshesfetdesretdunlernyrsebhulrylludremlysfynwerrycsugnysnyllyndyndemluxfedsedbecmunlyrtesmudnytbyrsenwegfyrmurtelreptegpecnelnevfes"</span>
+
+<span class="k">def</span> <span class="nf">split_len</span><span class="p">(</span><span class="n">seq</span><span class="p">,</span> <span class="n">length</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">seq</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">length</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">seq</span><span class="p">),</span> <span class="n">length</span><span class="p">)]</span>
+
+<span class="n">prefix</span> <span class="o">=</span> <span class="n">split_len</span><span class="p">(</span><span class="n">names</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+<span class="n">suffix</span> <span class="o">=</span> <span class="n">split_len</span><span class="p">(</span><span class="n">endings</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">hex_to_readable</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">skip</span><span class="p">):</span>
+    <span class="n">ret</span> <span class="o">=</span> <span class="s">""</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">skip</span> <span class="ow">and</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">2</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">skip</span> <span class="ow">and</span> <span class="n">i</span><span class="o">*</span><span class="mi">2</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span> <span class="o">//</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">2</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">ret</span> <span class="o">+=</span> <span class="s">"~</span><span class="si">%</span><span class="s">s</span><span class="si">%</span><span class="s">s"</span> <span class="o">%</span> <span class="p">(</span><span class="n">prefix</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">2</span><span class="p">]],</span> <span class="n">suffix</span><span class="p">[</span><span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="o">*</span><span class="mi">2</span><span class="o">+</span><span class="mi">1</span><span class="p">]])</span>
+    <span class="k">if</span> <span class="n">ret</span> <span class="o">==</span> <span class="s">""</span><span class="p">:</span>
+        <span class="n">ret</span> <span class="o">+=</span> <span class="s">"~</span><span class="si">%</span><span class="s">s</span><span class="si">%</span><span class="s">s"</span> <span class="o">%</span> <span class="p">(</span><span class="n">prefix</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">suffix</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="k">return</span> <span class="n">ret</span>
+
+<span class="k">def</span> <span class="nf">address_to_readable</span><span class="p">(</span><span class="n">address</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">hex_to_readable</span><span class="p">(</span><span class="nb">bytearray</span><span class="o">.</span><span class="n">fromhex</span><span class="p">(</span><span class="n">address</span><span class="p">),</span> <span class="bp">True</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">transaction_to_readable</span><span class="p">(</span><span class="n">transaction</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">hex_to_readable</span><span class="p">(</span><span class="nb">bytearray</span><span class="o">.</span><span class="n">fromhex</span><span class="p">(</span><span class="n">transaction</span><span class="p">),</span> <span class="bp">False</span><span class="p">)</span>
+
+<span class="k">print</span><span class="p">(</span><span class="n">address_to_readable</span><span class="p">(</span><span class="s">"df7d7e053933b5cc24372f878c90e62dadad5d42"</span><span class="p">))</span>
+</code></pre></div></div>
+
+  </div>
+
+  <footer class="footer">
+  <small>
+    
+    <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAAAPCAMAAABEF7i9AAAAllBMVEUAAAD///+rsapERER3d3eIiIjMzMzu7u4iIiKUmZO6v7rKzsoODg4RERFVVVUNDQ0NDg0PEA8zMzNLTEtbXltmZmZydnF9gn2AgICPkI+ZmZmqqqq7u7vFxsXIzMgNDQwZGRkgICAhISEkJSMnKCcuMC4xMzE5Ozk7PTtBQkFCQkJDQ0Nna2eGhoaHh4ezuLLGysbd3d1wVGpAAAAA0klEQVR42q2T1xbCIAyGk0CXdlmto3XvPd7/5QRL1432WHI4XED4+PMHALQHag0JJBlXMNQScx2ibu9PdTnQcY3iErYl6oxbAo/rUrUJA6J5vx0wNNC0gVkMbBPZXtQ8Uf6qpNJwOf0EjmCKto+ce1aSIg9FzTO1/xlYyVeL34FDMC3ZFT+SNXOX6PEsBKm0rIOYPYuGClnsWTxBHtQV1gRhI4UUGJh6EAsPoxdedjUPK+dzT38DDyvNXXYW9wJ43mh4h6ItN8U7Ldv+FN1/WXO8Aed5CQIgC4KiAAAAAElFTkSuQmCC" /></a>This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+    
+    </small>
+</footer>
+
+</div>
+
+    </div>
+
+    <label for="sidebar-checkbox" class="sidebar-toggle"></label>
+
+    <script>
+     (function(document) {
+       var toggle = document.querySelector('.sidebar-toggle');
+       var sidebar = document.querySelector('#sidebar');
+       var checkbox = document.querySelector('#sidebar-checkbox');
+
+       document.addEventListener('click', function(e) {
+         var target = e.target;
+
+         if(!checkbox.checked ||
+            sidebar.contains(target) ||
+            (target === checkbox || target === toggle)) return;
+
+         checkbox.checked = false;
+       }, false);
+     })(document);
+    </script>
+
+  </body>
+</html>

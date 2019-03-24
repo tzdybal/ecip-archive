@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  <!-- Enable responsiveness on mobile devices-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <meta property="og:title" content="22-EVMJETS: Jets in Ethereum Virtual Machine">
+  
+  <meta property="og:site_name" content="Ethereum Classic Improvement Proposals">
+  <meta name="author" content="Wei Tang">
+
+  
+  <meta property="og:type" content="article">
+  <meta property="article:published_time" content="2019-03-19T09:23:20+01:00">
+  
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="22-EVMJETS: Jets in Ethereum Virtual Machine">
+  
+  <meta name="twitter:site" content="@sorpaas">
+
+  <title>
+    
+      22-EVMJETS: Jets in Ethereum Virtual Machine &middot; Ethereum Classic Improvement Proposals
+    
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/styles.css">
+</head>
+
+  <body>
+    <!-- Target for toggling the sidebar `.sidebar-checkbox` is for regular
+     styles, `#sidebar-checkbox` for behavior. -->
+<input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox">
+
+<!-- Toggleable sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-item">
+    <p><p>Collections of Ethereum Classic Improvement Proposals</p>
+</p>
+  </div>
+
+  <nav class="sidebar-nav">
+    
+
+    <a class="sidebar-nav-item" href="/">
+      Home
+      </a>
+    
+    
+    
+    
+    <a class="sidebar-nav-item" href="/raw/">Raw</a>
+    
+    
+    
+    <a class="sidebar-nav-item" href="/draft/">Draft</a>
+    
+    
+    
+    <a class="sidebar-nav-item" href="/stable/">Stable</a>
+    
+    
+    
+    <a class="sidebar-nav-item" href="/deprecated/">Deprecated</a>
+    
+    
+  </nav>
+
+  <div class="sidebar-item">
+    <p>
+      &copy; 2019.
+      All rights reserved.
+      
+    </p>
+  </div>
+</div>
+
+
+    <!-- Wrap is the content to shift when toggling the sidebar. We wrap the
+         content to avoid any CSS collisions with our real content. -->
+    <div class="wrap">
+      
+
+<div class="container content">
+  <div class="page-header">
+    <div class="row">
+      <h1>22-EVMJETS</h1>
+      <p>Jets in Ethereum Virtual Machine</p>
+
+      <table>
+        <tr><th>URI</th><td>ecips.that.world/22-EVMJETS</td></tr>
+        <tr><th>Author</th><td>Wei Tang &lt;hi@that.world&gt;</td></tr>
+        
+        <tr><th>Discussions-To</th><td><a href="https://github.com/ethoxy/specs/issues/1">https://github.com/ethoxy/specs/issues/1</a></td></tr>
+        
+        <tr><th>Status</th><td>Raw</td></tr>
+        <tr><th>Type</th><td>Standard Track</td></tr>
+        
+        <tr><th>Category</th><td>Core</td></tr>
+        
+        
+        <tr><th>Created</th><td>2017-11-22</td></tr>
+        
+        
+        
+        
+        
+      </table>
+    </div>
+  </div>
+
+  <div class="page-content">
+    <h2 id="abstract">Abstract</h2>
+
+<p>Jets are optimization marks. Using jets, users can place optmization
+marks in an EVM program. An EVM interpreter will then verify the
+optimization mark claim, and if the verification passes, execute a
+native code version of the program that is equivalent to the original
+program.</p>
+
+<h2 id="specification">Specification</h2>
+
+<p>The optimization mark is defined as two adjencent opcodes.</p>
+
+<pre><code class="language-{.none}">PUSH11 45 56 4d 4a 45 54 53 &lt;4 bytes of registry ID&gt;
+POP
+</code></pre>
+
+<p>Readers can immediately follow that this optimization mark does not have
+side effects other than costing 5 gases. <code class="highlighter-rouge">45 56 4d 4a 45 54 53</code> is a
+magic code. The <code class="highlighter-rouge">&lt;4 bytes of registry ID&gt;</code> is interpreted as a
+big-endian unsigned integer.</p>
+
+<p>EVMs, on doing the initial <code class="highlighter-rouge">JUMPDEST</code> validity map execution round, can
+optionally search for the optimization mark as defined above. If an
+optimization mark is found, it then checks whether the <code class="highlighter-rouge">registry ID</code> is
+supported. Each <code class="highlighter-rouge">registry ID</code> has an associated code length. The EVM
+then verify that opcodes followed by the optimization mark, of code
+length, is a pre-defined one. If so, it can mark the beginning of that
+code region <code class="highlighter-rouge">A</code> (including the optimization mark) as "jet-able". When
+the program counter reads up to <code class="highlighter-rouge">A</code>, the EVM can choose to execute the
+jet-ed native code that results in the same state, and costs the same
+gas. However, if the program counter instead jumps to the middle of the
+code region, it should use the not-jet-ed unoptimized opcode.</p>
+
+<h2 id="registry-id-assignments">Registry ID Assignments</h2>
+
+<p>Registry ID of spec-2017-0001 can be assigned in a looser process but
+similar to how RFC works. EVM implementors can choose to implement any
+registry ID or not, but should avoid conflicting registry ID
+assignments. An assigment must also contain:</p>
+
+<ul>
+  <li>The code length of the optimizing block.</li>
+  <li>The opcode sequence of the optimizing block.</li>
+  <li>Sample implementation of the optimizing block.</li>
+</ul>
+
+<h2 id="example">Example</h2>
+
+<p>Usually for an opcode sequence to be replacable by native codes, it is
+required that it to be static:</p>
+
+<ul>
+  <li>Jumps need to be deterministic. The sequence can use <code class="highlighter-rouge">PC</code> opcode to
+jump to an offset of the current position.</li>
+  <li>It cannot jump out of its region.</li>
+</ul>
+
+<p>Below we consider the opcode <code class="highlighter-rouge">MUL</code> does not exist, and implement a
+jet-able version of <code class="highlighter-rouge">MUL</code> using <code class="highlighter-rouge">ADD</code>:</p>
+
+<pre><code class="language-{.none}">PUSH1 00
+DUP2
+DUP4
+ADD
+ADD
+SWAP2
+PUSH1 01
+SWAP1
+SUB
+SWAP2
+DUP3
+PC
+PUSH1 11
+SUB
+SWAP1
+JUMPI
+SWAP2
+POP
+POP
+</code></pre>
+
+<p>This can be simplified by <code class="highlighter-rouge">MUL</code> -- taking two items from the stack, and
+push one new item which is the multiply of the two items. Its gas cost
+can also be simplified as <code class="highlighter-rouge">12 + 51 * &lt;mul second item&gt;</code>.</p>
+
+  </div>
+
+  <footer class="footer">
+  <small>
+    
+    <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAAAPCAMAAABEF7i9AAAAllBMVEUAAAD///+rsapERER3d3eIiIjMzMzu7u4iIiKUmZO6v7rKzsoODg4RERFVVVUNDQ0NDg0PEA8zMzNLTEtbXltmZmZydnF9gn2AgICPkI+ZmZmqqqq7u7vFxsXIzMgNDQwZGRkgICAhISEkJSMnKCcuMC4xMzE5Ozk7PTtBQkFCQkJDQ0Nna2eGhoaHh4ezuLLGysbd3d1wVGpAAAAA0klEQVR42q2T1xbCIAyGk0CXdlmto3XvPd7/5QRL1432WHI4XED4+PMHALQHag0JJBlXMNQScx2ibu9PdTnQcY3iErYl6oxbAo/rUrUJA6J5vx0wNNC0gVkMbBPZXtQ8Uf6qpNJwOf0EjmCKto+ce1aSIg9FzTO1/xlYyVeL34FDMC3ZFT+SNXOX6PEsBKm0rIOYPYuGClnsWTxBHtQV1gRhI4UUGJh6EAsPoxdedjUPK+dzT38DDyvNXXYW9wJ43mh4h6ItN8U7Ldv+FN1/WXO8Aed5CQIgC4KiAAAAAElFTkSuQmCC" /></a>This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+    
+    </small>
+</footer>
+
+</div>
+
+    </div>
+
+    <label for="sidebar-checkbox" class="sidebar-toggle"></label>
+
+    <script>
+     (function(document) {
+       var toggle = document.querySelector('.sidebar-toggle');
+       var sidebar = document.querySelector('#sidebar');
+       var checkbox = document.querySelector('#sidebar-checkbox');
+
+       document.addEventListener('click', function(e) {
+         var target = e.target;
+
+         if(!checkbox.checked ||
+            sidebar.contains(target) ||
+            (target === checkbox || target === toggle)) return;
+
+         checkbox.checked = false;
+       }, false);
+     })(document);
+    </script>
+
+  </body>
+</html>

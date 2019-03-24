@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  <!-- Enable responsiveness on mobile devices-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <meta property="og:title" content="21-LEASM: Low-level Ethereum Virtual Machine Assembly">
+  
+  <meta property="og:site_name" content="Ethereum Classic Improvement Proposals">
+  <meta name="author" content="Wei Tang">
+
+  
+  <meta property="og:type" content="article">
+  <meta property="article:published_time" content="2019-03-19T09:23:20+01:00">
+  
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="21-LEASM: Low-level Ethereum Virtual Machine Assembly">
+  
+  <meta name="twitter:site" content="@sorpaas">
+
+  <title>
+    
+      21-LEASM: Low-level Ethereum Virtual Machine Assembly &middot; Ethereum Classic Improvement Proposals
+    
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/styles.css">
+</head>
+
+  <body>
+    <!-- Target for toggling the sidebar `.sidebar-checkbox` is for regular
+     styles, `#sidebar-checkbox` for behavior. -->
+<input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox">
+
+<!-- Toggleable sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-item">
+    <p><p>Collections of Ethereum Classic Improvement Proposals</p>
+</p>
+  </div>
+
+  <nav class="sidebar-nav">
+    
+
+    <a class="sidebar-nav-item" href="/">
+      Home
+      </a>
+    
+    
+    
+    
+    <a class="sidebar-nav-item" href="/raw/">Raw</a>
+    
+    
+    
+    <a class="sidebar-nav-item" href="/draft/">Draft</a>
+    
+    
+    
+    <a class="sidebar-nav-item" href="/stable/">Stable</a>
+    
+    
+    
+    <a class="sidebar-nav-item" href="/deprecated/">Deprecated</a>
+    
+    
+  </nav>
+
+  <div class="sidebar-item">
+    <p>
+      &copy; 2019.
+      All rights reserved.
+      
+    </p>
+  </div>
+</div>
+
+
+    <!-- Wrap is the content to shift when toggling the sidebar. We wrap the
+         content to avoid any CSS collisions with our real content. -->
+    <div class="wrap">
+      
+
+<div class="container content">
+  <div class="page-header">
+    <div class="row">
+      <h1>21-LEASM</h1>
+      <p>Low-level Ethereum Virtual Machine Assembly</p>
+
+      <table>
+        <tr><th>URI</th><td>ecips.that.world/21-LEASM</td></tr>
+        <tr><th>Author</th><td>Wei Tang &lt;hi@that.world&gt;</td></tr>
+        
+        <tr><th>Status</th><td>Raw</td></tr>
+        <tr><th>Type</th><td>Standard Track</td></tr>
+        
+        <tr><th>Category</th><td>Interface</td></tr>
+        
+        
+        
+        
+        
+        
+      </table>
+    </div>
+  </div>
+
+  <div class="page-content">
+    <p>This RFC aims to provide an assembly language that closely assembles EVM
+opcodes.</p>
+
+<h2 id="normal-opcodes">Normal Opcodes</h2>
+
+<p>Instructions should be in lower case letters [[a-z]]{.title-ref} and
+ends with space or a new line. Opcodes that are normal are everything
+except [PUSH]{.title-ref}.</p>
+
+<p>This includes <em>Stop and Arithmetic Operations</em>:</p>
+
+<ul>
+  <li>stop</li>
+  <li>add</li>
+  <li>mul</li>
+  <li>sub</li>
+  <li>div</li>
+  <li>sdiv</li>
+  <li>mod</li>
+  <li>smod</li>
+  <li>addmod</li>
+  <li>mulmod</li>
+  <li>exp</li>
+  <li>sigextend</li>
+</ul>
+
+<p><em>Comparison &amp; Bitwise Logic Operations</em>:</p>
+
+<ul>
+  <li>lt</li>
+  <li>gt</li>
+  <li>slt</li>
+  <li>sgt</li>
+  <li>eq</li>
+  <li>iszero</li>
+  <li>and</li>
+  <li>or</li>
+  <li>xor</li>
+  <li>not</li>
+  <li>byte</li>
+</ul>
+
+<p><em>SHA3</em>:</p>
+
+<ul>
+  <li>sha3</li>
+</ul>
+
+<p><em>Environmental Information</em>:</p>
+
+<ul>
+  <li>address</li>
+  <li>balance</li>
+  <li>origin</li>
+  <li>caller</li>
+  <li>callvalue</li>
+  <li>calldataload</li>
+  <li>calldatasize</li>
+  <li>calldatacopy</li>
+  <li>codesize</li>
+  <li>codecopy</li>
+  <li>gasprice</li>
+  <li>extcodesize</li>
+  <li>extcodecopy</li>
+</ul>
+
+<p><em>Block Information</em>:</p>
+
+<ul>
+  <li>blockhash</li>
+  <li>coinbase</li>
+  <li>timestamp</li>
+  <li>number</li>
+  <li>difficulty</li>
+  <li>gaslimit</li>
+</ul>
+
+<p><em>Stack, Memory, Storage and Flow Operations</em>:</p>
+
+<ul>
+  <li>pop</li>
+  <li>mload</li>
+  <li>mstore</li>
+  <li>mstore8</li>
+  <li>sload</li>
+  <li>sstore</li>
+  <li>jump</li>
+  <li>jumpi</li>
+  <li>pc</li>
+  <li>msize</li>
+  <li>gas</li>
+  <li>jumpdest</li>
+</ul>
+
+<p><em>Duplication, Exchange and Logging Operations</em>:</p>
+
+<ul>
+  <li>dup[1-16]</li>
+  <li>swap[1-16]</li>
+  <li>log[0-4]</li>
+</ul>
+
+<p><em>System Operations</em>:</p>
+
+<ul>
+  <li>create</li>
+  <li>call</li>
+  <li>callcode</li>
+  <li>return</li>
+  <li>delegatecall</li>
+  <li>suicide</li>
+</ul>
+
+<h2 id="push-opcodes">Push Opcodes</h2>
+
+<p>For <em>Push Operations</em> push[1-32], the instruction should start with
+the instruction name, followed by [(]{.title-ref}, followed by the byte
+to be pushed, prefixed by [0x]{.title-ref}, and then followed by
+[)]{.title-ref}. There should not be any space or newline character in
+between.</p>
+
+  </div>
+
+  <footer class="footer">
+  <small>
+    
+    <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAAAPCAMAAABEF7i9AAAAllBMVEUAAAD///+rsapERER3d3eIiIjMzMzu7u4iIiKUmZO6v7rKzsoODg4RERFVVVUNDQ0NDg0PEA8zMzNLTEtbXltmZmZydnF9gn2AgICPkI+ZmZmqqqq7u7vFxsXIzMgNDQwZGRkgICAhISEkJSMnKCcuMC4xMzE5Ozk7PTtBQkFCQkJDQ0Nna2eGhoaHh4ezuLLGysbd3d1wVGpAAAAA0klEQVR42q2T1xbCIAyGk0CXdlmto3XvPd7/5QRL1432WHI4XED4+PMHALQHag0JJBlXMNQScx2ibu9PdTnQcY3iErYl6oxbAo/rUrUJA6J5vx0wNNC0gVkMbBPZXtQ8Uf6qpNJwOf0EjmCKto+ce1aSIg9FzTO1/xlYyVeL34FDMC3ZFT+SNXOX6PEsBKm0rIOYPYuGClnsWTxBHtQV1gRhI4UUGJh6EAsPoxdedjUPK+dzT38DDyvNXXYW9wJ43mh4h6ItN8U7Ldv+FN1/WXO8Aed5CQIgC4KiAAAAAElFTkSuQmCC" /></a>This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+    
+    </small>
+</footer>
+
+</div>
+
+    </div>
+
+    <label for="sidebar-checkbox" class="sidebar-toggle"></label>
+
+    <script>
+     (function(document) {
+       var toggle = document.querySelector('.sidebar-toggle');
+       var sidebar = document.querySelector('#sidebar');
+       var checkbox = document.querySelector('#sidebar-checkbox');
+
+       document.addEventListener('click', function(e) {
+         var target = e.target;
+
+         if(!checkbox.checked ||
+            sidebar.contains(target) ||
+            (target === checkbox || target === toggle)) return;
+
+         checkbox.checked = false;
+       }, false);
+     })(document);
+    </script>
+
+  </body>
+</html>

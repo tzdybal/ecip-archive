@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  <!-- Enable responsiveness on mobile devices-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <meta property="og:title" content="35-VERALT: Maintain Existing Account Compatibility While Hard Forking">
+  
+  <meta property="og:site_name" content="Ethereum Classic Improvement Proposals">
+  <meta name="author" content="Wei Tang">
+
+  
+  <meta property="og:type" content="article">
+  <meta property="article:published_time" content="2019-03-19T09:23:20+01:00">
+  
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="35-VERALT: Maintain Existing Account Compatibility While Hard Forking">
+  
+  <meta name="twitter:site" content="@sorpaas">
+
+  <title>
+    
+      35-VERALT: Maintain Existing Account Compatibility While Hard Forking &middot; Ethereum Classic Improvement Proposals
+    
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/styles.css">
+</head>
+
+  <body>
+    <!-- Target for toggling the sidebar `.sidebar-checkbox` is for regular
+     styles, `#sidebar-checkbox` for behavior. -->
+<input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox">
+
+<!-- Toggleable sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-item">
+    <p><p>Collections of Ethereum Classic Improvement Proposals</p>
+</p>
+  </div>
+
+  <nav class="sidebar-nav">
+    
+
+    <a class="sidebar-nav-item" href="/">
+      Home
+      </a>
+    
+    
+    
+    
+    <a class="sidebar-nav-item" href="/raw/">Raw</a>
+    
+    
+    
+    <a class="sidebar-nav-item" href="/draft/">Draft</a>
+    
+    
+    
+    <a class="sidebar-nav-item" href="/stable/">Stable</a>
+    
+    
+    
+    <a class="sidebar-nav-item" href="/deprecated/">Deprecated</a>
+    
+    
+  </nav>
+
+  <div class="sidebar-item">
+    <p>
+      &copy; 2019.
+      All rights reserved.
+      
+    </p>
+  </div>
+</div>
+
+
+    <!-- Wrap is the content to shift when toggling the sidebar. We wrap the
+         content to avoid any CSS collisions with our real content. -->
+    <div class="wrap">
+      
+
+<div class="container content">
+  <div class="page-header">
+    <div class="row">
+      <h1>35-VERALT</h1>
+      <p>Maintain Existing Account Compatibility While Hard Forking</p>
+
+      <table>
+        <tr><th>URI</th><td>ecips.that.world/35-VERALT</td></tr>
+        <tr><th>Author</th><td>Wei Tang &lt;hi@that.world&gt;</td></tr>
+        
+        <tr><th>Status</th><td>Raw</td></tr>
+        <tr><th>Type</th><td>Standard Track</td></tr>
+        
+        <tr><th>Category</th><td>Core</td></tr>
+        
+        
+        <tr><th>Created</th><td>2017-12-30</td></tr>
+        
+        
+        
+        
+        
+      </table>
+    </div>
+  </div>
+
+  <div class="page-content">
+    <h3 id="abstract">Abstract</h3>
+
+<p>This defines a method of hard forking while maintaining the exact functionality of existing account by allowing multiple versions of the virtual machines to execute in the same block. This is also useful to define future account state structures when we introduce the on-chain WebAssembly virtual machine.</p>
+
+<h3 id="motivation">Motivation</h3>
+
+<p>When EIP150 was activated on Ethereum Classic, it was critised that it changes the behaviour of many existing smart contracts on the blockchain, and made several ones unusable. The same thing will also happen in the future if we decided to add some of the Byzantium hard forks to Ethereum Classic.</p>
+
+<p>Take the REVERT opcode as an example. Currently there’re already many contracts on the Ethereum Classic blockchain with the REVERT opcode. This opcode is now considered invalid. When EVM executes to REVERT, it will treat it as an invalid opcode, consume all the gases, and return an error. However, when we hard fork to define the actual REVERT, existing users would suddenly find that the behavior of their existing contract would have changed – instead of consuming all gases, it will now only consume less than the given gas limit and return. Several on-chain contract might rely on the old behavior for some of their functionality. Besides, if a dapp developer does not follow the hard fork, he or she will suddenly find that the dapp might suddenly break because the existing method to detect whether a contract execution succeeds or not does not work any more.</p>
+
+<p>One of the important mission of blockchain is to “become your own bank”. In Bitcoin, that means once a transaction is executed, the fund will always be controlled by the receiver unless he or she sends it out again. In Ethereum, an additional important property is that, once a smart contract is deployed, it should always execute in the original expected manner. As a result, it is important to have a way to <strong>maintain compatibility of existing contracts</strong> and at the same time <strong>easily add new protocol features</strong>.</p>
+
+<p>Note that this specification might not apply to all hard forks. We have emergency hard forks in the past due to network attacks. Whether they should maintain existing account compatibility should be evaluated in individual basis. If the attack can only be executed once against some particular contracts, then the scheme defined here might still be applicable. Otherwise, having a plain emergency hard fork might still be a good idea.</p>
+
+<h3 id="specification">Specification</h3>
+
+<h4 id="account-state">Account State</h4>
+
+<p>After the first hard fork using this scheme, the account state stored in the world state trie is changed to become a five-item RLP encoding: <code class="highlighter-rouge">nonce</code>, <code class="highlighter-rouge">balance</code>, <code class="highlighter-rouge">storageRoot</code>, <code class="highlighter-rouge">codeHash</code> and <code class="highlighter-rouge">version</code>. The <code class="highlighter-rouge">version</code> field defines that when a contract call transaction or <code class="highlighter-rouge">CALL</code> opcode is executed against this contract, which version of the virtual machine should be used. Four-item RLP encoding account state are considered to have the <code class="highlighter-rouge">version</code> 0.</p>
+
+<p><code class="highlighter-rouge">CREATE</code> opcode and the contract creation transaction, however, would only deploy contracts of the newest version.</p>
+
+<p>The behavior of <code class="highlighter-rouge">CALLCODE</code> and <code class="highlighter-rouge">DELEGATECALL</code> are not affected by the hard fork – they would fetch the contract code (even if the contract is deployed in a newer version) and still use the virtual machine version defined in the current contract (or in the case of within the input of contract creation transaction or <code class="highlighter-rouge">CREATE</code> opcode, the newest virtual machine version) to execute the code.</p>
+
+<p>There is no versioning for precompiled contracts. Once hard fork, they’re available for both old and new accounts.</p>
+
+<h4 id="handle-receipts">Handle Receipts</h4>
+
+<p>For simplicity, transaction receipts are always of the newest format, but they should maintain compatibility by either having a default value or allowing null value for newly defined fields. In this way, virtual machines executed in older versions would not need to deal with the new fields in receipts.</p>
+
+<h3 id="example">Example</h3>
+
+<p>Consider we would like to have the REVERT opcode hard fork in Ethereum Classic using this scheme. After the hard fork, we have:</p>
+
+<ul>
+  <li>Existing accounts are still of four-item RLP encoding. When a transaction has <code class="highlighter-rouge">to</code> field pointing to them, they’re executed using version 0 of EVM. REVERT is the same as INVALID and consumes all the gases.</li>
+  <li>A new contract creation transaction is executed using version 1 virtual machine, and would only create version 1 account on the blockchain. When executing them, it uses version 1 of EVM and REVERT uses the new behavior.</li>
+  <li>When a version 0 account issues a CALL to version 1 account, sub-execution of the version 1 account uses the version 1 virtual machine.</li>
+  <li>When a version 1 account issues a CALL to version 0 account, sub-execution of the version 0 account uses the version 0 vritual machine.</li>
+  <li>When a version 0 account issues a CREATE, it always uses the newest version of the virtual machine, so it only creates version 1 new accounts.</li>
+</ul>
+
+<h3 id="discussions">Discussions</h3>
+
+<h4 id="performance">Performance</h4>
+
+<p>Currently nearly all full node implementations uses config parameters to decide which virtual machine version to use. Switching vitual machine version is simply an operation that changes a pointer using a different set of config parameters. As a result, this scheme has nearly zero impact to performance.</p>
+
+<h4 id="smart-contract-boundary-and-formal-verification">Smart Contract Boundary and Formal Verification</h4>
+
+<p>Many current efforts are on-going for getting smart contracts formally verified. However, for any hard fork that introduces new opcodes or change behaviors of existing opcodes would break the verification of an existing contract has previously be formally verified. Using the scheme described here, we define the boundary of how a smart contract interacts with the blockchain and it might help the formal verification efforts:</p>
+
+<ul>
+  <li>A smart contract has only immutable access to information of blockchain account balances and codes.</li>
+  <li>A smart contract has only immutable access of block information.</li>
+  <li>A smart contract or a contract creation transaction can modify only its own storage and codes.</li>
+  <li>A smart contract can only interact with the blockchain in a mutable way using <code class="highlighter-rouge">CALL</code> or <code class="highlighter-rouge">CREATE</code>.</li>
+</ul>
+
+<h4 id="webassembly">WebAssembly</h4>
+
+<p>This scheme can also be helpful when we deploy on-chain WebAssembly virtual machine. In that case, WASM contracts and EVM contracts can co-exist and the execution boundary and interaction model are clearly defined as above.</p>
+
+  </div>
+
+  <footer class="footer">
+  <small>
+    
+    <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAAAPCAMAAABEF7i9AAAAllBMVEUAAAD///+rsapERER3d3eIiIjMzMzu7u4iIiKUmZO6v7rKzsoODg4RERFVVVUNDQ0NDg0PEA8zMzNLTEtbXltmZmZydnF9gn2AgICPkI+ZmZmqqqq7u7vFxsXIzMgNDQwZGRkgICAhISEkJSMnKCcuMC4xMzE5Ozk7PTtBQkFCQkJDQ0Nna2eGhoaHh4ezuLLGysbd3d1wVGpAAAAA0klEQVR42q2T1xbCIAyGk0CXdlmto3XvPd7/5QRL1432WHI4XED4+PMHALQHag0JJBlXMNQScx2ibu9PdTnQcY3iErYl6oxbAo/rUrUJA6J5vx0wNNC0gVkMbBPZXtQ8Uf6qpNJwOf0EjmCKto+ce1aSIg9FzTO1/xlYyVeL34FDMC3ZFT+SNXOX6PEsBKm0rIOYPYuGClnsWTxBHtQV1gRhI4UUGJh6EAsPoxdedjUPK+dzT38DDyvNXXYW9wJ43mh4h6ItN8U7Ldv+FN1/WXO8Aed5CQIgC4KiAAAAAElFTkSuQmCC" /></a>This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+    
+    </small>
+</footer>
+
+</div>
+
+    </div>
+
+    <label for="sidebar-checkbox" class="sidebar-toggle"></label>
+
+    <script>
+     (function(document) {
+       var toggle = document.querySelector('.sidebar-toggle');
+       var sidebar = document.querySelector('#sidebar');
+       var checkbox = document.querySelector('#sidebar-checkbox');
+
+       document.addEventListener('click', function(e) {
+         var target = e.target;
+
+         if(!checkbox.checked ||
+            sidebar.contains(target) ||
+            (target === checkbox || target === toggle)) return;
+
+         checkbox.checked = false;
+       }, false);
+     })(document);
+    </script>
+
+  </body>
+</html>

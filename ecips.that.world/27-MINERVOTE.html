@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  <!-- Enable responsiveness on mobile devices-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <meta property="og:title" content="27-MINERVOTE: Generalized Version Bits Voting for Consensus Soft and Hard Forks">
+  
+  <meta property="og:site_name" content="Ethereum Classic Improvement Proposals">
+  <meta name="author" content="Wei Tang">
+
+  
+  <meta property="og:type" content="article">
+  <meta property="article:published_time" content="2019-03-19T09:23:20+01:00">
+  
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="27-MINERVOTE: Generalized Version Bits Voting for Consensus Soft and Hard Forks">
+  
+  <meta name="twitter:site" content="@sorpaas">
+
+  <title>
+    
+      27-MINERVOTE: Generalized Version Bits Voting for Consensus Soft and Hard Forks &middot; Ethereum Classic Improvement Proposals
+    
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/styles.css">
+</head>
+
+  <body>
+    <!-- Target for toggling the sidebar `.sidebar-checkbox` is for regular
+     styles, `#sidebar-checkbox` for behavior. -->
+<input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox">
+
+<!-- Toggleable sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-item">
+    <p><p>Collections of Ethereum Classic Improvement Proposals</p>
+</p>
+  </div>
+
+  <nav class="sidebar-nav">
+    
+
+    <a class="sidebar-nav-item" href="/">
+      Home
+      </a>
+    
+    
+    
+    
+    <a class="sidebar-nav-item" href="/raw/">Raw</a>
+    
+    
+    
+    <a class="sidebar-nav-item" href="/draft/">Draft</a>
+    
+    
+    
+    <a class="sidebar-nav-item" href="/stable/">Stable</a>
+    
+    
+    
+    <a class="sidebar-nav-item" href="/deprecated/">Deprecated</a>
+    
+    
+  </nav>
+
+  <div class="sidebar-item">
+    <p>
+      &copy; 2019.
+      All rights reserved.
+      
+    </p>
+  </div>
+</div>
+
+
+    <!-- Wrap is the content to shift when toggling the sidebar. We wrap the
+         content to avoid any CSS collisions with our real content. -->
+    <div class="wrap">
+      
+
+<div class="container content">
+  <div class="page-header">
+    <div class="row">
+      <h1>27-MINERVOTE</h1>
+      <p>Generalized Version Bits Voting for Consensus Soft and Hard Forks</p>
+
+      <table>
+        <tr><th>URI</th><td>ecips.that.world/27-MINERVOTE</td></tr>
+        <tr><th>Author</th><td>Wei Tang &lt;hi@that.world&gt;</td></tr>
+        
+        <tr><th>Status</th><td>Raw</td></tr>
+        <tr><th>Type</th><td>Standard Track</td></tr>
+        
+        <tr><th>Category</th><td>Core</td></tr>
+        
+        
+        <tr><th>Created</th><td>2017-06-28</td></tr>
+        
+        
+        
+        
+        
+      </table>
+    </div>
+  </div>
+
+  <div class="page-content">
+    <h2 id="abstract">Abstract</h2>
+
+<p>The following ECIP tries to bring the best practices about how Bitcoin deals with consensus hard fork (<a href="https://github.com/bitcoin/bips/blob/master/bip-0009.mediawiki">BIP-9</a> and <a href="https://github.com/bitcoin/bips/blob/master/bip-0135.mediawiki">BIP-135</a>) into Ethereum Classic. Rather than hard-code a block number as we currently do, each block mined emits support of the new consensus hard-fork. Only when a large enough portion of the network support it, the hard-fork is “locked-in” and will be activated.</p>
+
+<h2 id="motivation">Motivation</h2>
+
+<p><strong>Lack of an appropriate voting method can results in network forking</strong>. The DAO hard fork was such an example. Currently the way Ethereum used to gather opinions was through <a href="http://carbonvote.com/">CarbonVote</a>. It indeed has the advantage that it brings the opinions of Ethereum holders rather than miners. However, it is not enforceable and we all know the disastrous result it brought during the DAO hard fork period. We don’t want that to happen again.</p>
+
+<p><strong>Miner community, stake holders and proof of work</strong>. It is common knowledge that Ethereum Classic will probably stay in proof of work, rather than, like Ethereum, switch to a proof of stake algorithm. Combining this ECIP together with ECIP-1023, we combines opinions from both the miner community and ETC coin holders to reach consensus about whether a hard fork should occur.</p>
+
+<p><strong>Best practices from Bitcoin</strong>. <a href="https://github.com/bitcoin/bips/blob/master/bip-0009.mediawiki">BIP-9</a>, which uses version bits mined in each blocks to vote for consensus soft fork has be successfully conducted for several. Its upgraded version, BIP-135, aims to deal with both soft forks and hard forks alike.</p>
+
+<p><strong>Potentially faster adoption of new consensus hard fork</strong>. When dealing with emergency consensus hard fork for preventing network attacks, the developer would not need to artificially insert a “hard fork block number” (which must leave enough time for everyone else to upgrade their clients, and then wait for that block). The ETC coin holders and miners collectively decide when the hard fork happens, which potentially could be faster than hard coded block numbers.</p>
+
+<p><strong>Ethereum Classic will become a stable protocol soon</strong>. When we finished dealing with the monetary policy and finally the difficulty bomb, ETC’s protocol would become a rather stable one. This means most of the new consensus hard fork would be new features of the network, rather than fixing existing bugs. In that case, voting would be important to keep the whole network healthy.</p>
+
+<h2 id="terms-and-conventions">Terms and conventions</h2>
+
+<p>The version bits used by this proposal for signaling deployment of forks are
+referred to as ‘signaling bits’ or shortened to ‘bits’ where unambiguous.</p>
+
+<p>The key words “MUST”, “MUST NOT”, “REQUIRED”, “SHALL”, “SHALL NOT”,
+“SHOULD”, “SHOULD NOT”, “RECOMMENDED”, “MAY”, and “OPTIONAL” in this
+document are to be interpreted as described in RFC 2119.</p>
+
+<h2 id="specification">Specification</h2>
+
+<h3 id="signaling-bits">Signaling bits</h3>
+
+<p>Ethereum’s extraData field are 32-bytes, i.e. a 256-bit value. The field itself should be a RLP list that follows:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>[ version: P, signalingBits: S, clientIdentity: B ]
+</code></pre></div></div>
+
+<p>For this ECIP, <code class="highlighter-rouge">version</code> should equal to <code class="highlighter-rouge">1</code>, and <code class="highlighter-rouge">signalingBits</code> and <code class="highlighter-rouge">clientIdentity</code> fulfill the rest of the extraData field as long as it does not exceed the maximum size allowed. This allows us to have way more concurrent signalings and better backward compatibility than Bitcoin.</p>
+
+<p><code class="highlighter-rouge">signalingBits</code> are right-aligned, i.e. <code class="highlighter-rouge">0b1</code> has its bit at index 0 set, <code class="highlighter-rouge">0b10</code> has its bit at index 1 set, <code class="highlighter-rouge">0b100</code> has its bit at index 2 set.</p>
+
+<h3 id="deployment-states">Deployment states</h3>
+
+<p>With each block and fork, we associate a deployment state. The possible states are:</p>
+
+<ul>
+  <li><strong>DEFINED</strong> is the first state that each fork starts out as. The genesis block for any chain SHALL by definition be in this state for each deployment.</li>
+  <li><strong>STARTED</strong> for blocks past the starttime.</li>
+  <li><strong>LOCKED_IN</strong> after STARTED, if at least threshold out of windowsize blocks have the associated bit set in <code class="highlighter-rouge">signalingBits</code> in <code class="highlighter-rouge">extraData</code> block header, measured at next height that is evenly divisible by the windowsize.</li>
+  <li><strong>ACTIVE</strong> for all blocks after the grace period conditions have been met.</li>
+  <li><strong>FAILED</strong> if past the timeout time and LOCKED_IN was not reached.</li>
+</ul>
+
+<p>In accordance with BIP9, a block’s state SHALL never depend on its own extraData; only on that of its ancestors.</p>
+
+<h3 id="fork-deployment-parameters">Fork deployment parameters</h3>
+
+<p>Each fork deployment is specified by the following per-chain parameters:</p>
+
+<ul>
+  <li>The <strong>name</strong> specifies a very brief description of the fork, reasonable for use as an identifier. For deployments described in a single BIP, it is recommended to use the name “bipN” where N is the appropriate BIP number.</li>
+  <li>The <strong>bit</strong> determines which bit in the extraData field of the block is to be used to signal the fork deployment.</li>
+  <li>The <strong>start</strong> specifies a block number at which the bit gains its meaning.</li>
+  <li>The <strong>timeout</strong> specifies a time at which the deployment is considered failed. If the current block number &gt;= (start + timeout) and the fork has not yet locked in (including this block’s bit state), the deployment is considered failed on all descendants of the block.</li>
+  <li>The <strong>windowsize</strong> specifies the number of past blocks (including the block under consideration) to be taken into account for locking in a fork.</li>
+  <li>The <strong>threshold</strong> specifies a number of blocks, in the range of 1..windowsize, which must signal for a fork in order to lock it in. The support is measured when the chain height is evenly divisible by the windowsize. If the windowsize is set to 2016 (as in BIP9) this coincides with the 2016-block re-targeting intervals.</li>
+  <li>The <strong>minlockedblocks</strong> specifies a minimum number of blocks which a fork must remain in locked-in state before it can become active. Both minlockedblocks and minlockedtime (see below) must be satisfied before a fork can become active. If the current block number &gt;= (minlockedblocks + the block number that locked in the fork), then the fork becomes activated.</li>
+</ul>
+
+<h3 id="tallying">Tallying</h3>
+
+<p>If a block’s extraData specifies a version other than <code class="highlighter-rouge">1</code>, all its signaling bits MUST be treated as if they are ‘0’.</p>
+
+<p>A signaling bit value of ‘1’ SHALL indicate support of a fork and SHALL count towards its tally on a chain.</p>
+
+<p>A signaling bit value of ‘0’ SHALL indicate absence of support of a fork and SHALL NOT count towards its tally on a chain.</p>
+
+<p>The signaling bits SHALL be tallied whenever the head of the active chain changes (including after reorganizations).</p>
+
+<h3 id="state-transitions">State transitions</h3>
+
+<p>The following diagram illustrates the generalized state machine:</p>
+
+<p><img src="ECIP-1022/bip-0135-states-small.png" alt="State transactions" /></p>
+
+<p>The genesis block of any chain SHALL have the state DEFINED for each deployment.</p>
+
+<p>A given deployment SHALL remain in the DEFINED state until it either passes the start (and becomes STARTED) or the timeout time (and becomes FAILED).</p>
+
+<p>Once a deployment has STARTED, the signal for that deployment SHALL be tallied over the the past windowsize blocks whenever a new block is received on that chain.</p>
+
+<p>A transition from the STARTED state to the LOCKED_IN state SHALL only occur when all of these are true:</p>
+
+<ul>
+  <li>the height of the received block is an integer multiple of the window size</li>
+  <li>the current block number is below (start + timeout)</li>
+  <li>at least threshold out of windowsize blocks have signaled support</li>
+</ul>
+
+<p>A similar height synchronization precondition SHALL exist for the transition from LOCKED_IN to ACTIVE. These synchronization conditions are expressed by the “mod(height, windowsize) = 0” clauses in the diagram.</p>
+
+<p>A transition from LOCKED_IN to ACTIVE state SHALL only occur if the height synchronization criterion is met and the below configurable ‘grace period’ conditions are fulfilled:</p>
+
+<ul>
+  <li>current height MUST be at least minlockedblocks above LOCKED_IN height</li>
+</ul>
+
+<p>NOTE: If minlockedblocks is set to 0, then the fork will proceed directly to ACTIVE state once the chain height reaches a multiple of the windowsize.</p>
+
+<p>The ACTIVE and FAILED states are terminal; a deployment stays in these states once they are reached.</p>
+
+<p>Deployment states are maintained along block chain branches. They need re-computation when a reorganization happens.</p>
+
+<h3 id="new-consensus-rules">New consensus rules</h3>
+
+<p>New consensus rules deployed by a fork SHALL be enforced for each block that has ACTIVE state.</p>
+
+<h3 id="optional-operator-notifications">Optional operator notifications</h3>
+
+<p>An implementation SHOULD notify the operator when a deployment transitions
+to STARTED, LOCKED_IN, ACTIVE or FAILED states.</p>
+
+<p>It is RECOMMENDED that an implementation provide finer-grained notifications
+to the operator which allow him/her to track the measured support level for
+defined deployments.</p>
+
+<p>An implementation SHOULD warn the operator if the configured (emitted) nVersion
+has been overridden to contain bits set to ‘1’ in contravention of the above
+non-signaling recommendations for DEFINED forks.</p>
+
+<p>It is RECOMMENDED that an implementation warn the operator if no signal has
+been received for a given deployment during a full windowsize period after the
+deployment has STARTED. This could indicate that something may be wrong with
+the operator’s configuration that is causing them not to receive the signal
+correctly.</p>
+
+<p>For undefined signals, it is RECOMMENDED that implementation track these and
+alert their operators with supportive upgrade notifications, e.g.</p>
+
+<ul>
+  <li>“warning: signaling started on unknown feature on version bit X”</li>
+  <li>“warning: signaling on unknown feature reached X% (over last N blocks)”</li>
+  <li>“info: signaling ceased on unknown feature (over last M blocks)”</li>
+</ul>
+
+<p>Since parameters of these deployments are unknown, it is RECOMMENDED that
+implementations allow the user to configure the emission of such notifications
+(e.g. suitable N and M parameters in the messages above, e.g. a best-guess
+window of 100 blocks).</p>
+
+<h2 id="rationale">Rationale</h2>
+
+<p>The timeout into FAILED state allows eventual reuse of bits if a fork was not successfully activated.</p>
+
+<p>A fallow period at the conclusion of a fork attempt allows some detection of buggy clients, and allows time for warnings and software upgrades for successful forks. The duration of a fallow period is not specified by this proposal, although a conventional fallow period of 3 months is RECOMMENDED.</p>
+
+<h2 id="guidelines">Guidelines</h2>
+
+<h3 id="parameter-selection-guidelines">Parameter selection guidelines</h3>
+
+<p>The following guidelines are suggested for selecting the parameters for a fork:</p>
+
+<ul>
+  <li><strong>name</strong> SHOULD be selected such that no two forks, concurrent or otherwise, ever use the same name.</li>
+  <li><strong>bit</strong> SHOULD be selected such that no two concurrent forks use the same bit. Implementors should make an effort to consult resources such as [2] to establish whether the bit they wish to use can reasonably be assumed to be unclaimed by a concurrent fork, and to announce their use (‘claim’) of a bit for a fork purpose on various project mailing lists, to reduce chance of collisions.</li>
+  <li><strong>start</strong> SHOULD be set to some block number in the future, approximately one month after a software release date which includes the fork signaling.  This allows for some release delays, while preventing triggers as a result of parties running pre-release software.</li>
+  <li><strong>timeout</strong> is RECOMMENDED to be a block number that is approximately 1 year after start.</li>
+  <li><strong>windowsize</strong> SHOULD be set large enough to allow reception of an adequately precise signal.</li>
+  <li><strong>threshold</strong> SHOULD be set as high as possible to ensure a smooth activation based on the estimated support and the nature of the proposed changes. It is strongly RECOMMENDED that threshold &gt;= windowsize / 2 (rounded up) to ensure that a proposal is only activated by majority support.</li>
+  <li><strong>minlockedblocks</strong> is RECOMMENDED to be set &gt;= windowsize, to ensure that a full window passes in LOCKED_IN state. Lower values will be ineffective as the transition from LOCKED_IN to ACTIVE is guarded by a synchronization based on the window size.</li>
+</ul>
+
+<p>NOTE: If minlockedblocks is set to 0, then the fork will proceed to ACTIVE state when the chain height reaches a multiple of the windowsize.</p>
+
+<p>A later deployment using the same bit is possible as long as the starttime is after the previous fork’s timeout or activation, but it is discouraged until necessary, and even then recommended to have a pause in between to detect buggy software.</p>
+
+<h3 id="signaling-guidelines">Signaling guidelines</h3>
+
+<p>An implementation SHOULD signal ‘0’ on a bit if one of the following holds true:</p>
+
+<ul>
+  <li>the deployment parameters are not DEFINED (not configured or explicitly undefined)</li>
+  <li>the deployment is DEFINED and has not yet reached the STARTED state</li>
+  <li>the deployment has succeeded (it has become ACTIVE)</li>
+  <li>the deployment has FAILED</li>
+</ul>
+
+<p>An implementation SHOULD enable the operator to choose (override) whether to signal ‘0’ or ‘1’ on a bit, once its deployment has at least reached the STARTED state.</p>
+
+<p>A supporting miner SHOULD signal ‘1’ on a bit for which the deployment is LOCKED_IN state so that uptake is visible. However, this has no effect on consensus rules. Once LOCKED_IN, a deployment proceeds to ACTIVE solely based on the configured grace period parameters (see ‘Fork deployment parameters’ above).</p>
+
+<p>A miner SHOULD signal ‘0’ on a bit if they wish to suspend signaling of support for a fork that is DEFINED in their software.</p>
+
+<p>It is NOT RECOMMENDED to signal ‘1’ for bits where the meaning is undefined (i.e. bits which are unclaimed by proposals).</p>
+
+  </div>
+
+  <footer class="footer">
+  <small>
+    
+    <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAAAPCAMAAABEF7i9AAAAllBMVEUAAAD///+rsapERER3d3eIiIjMzMzu7u4iIiKUmZO6v7rKzsoODg4RERFVVVUNDQ0NDg0PEA8zMzNLTEtbXltmZmZydnF9gn2AgICPkI+ZmZmqqqq7u7vFxsXIzMgNDQwZGRkgICAhISEkJSMnKCcuMC4xMzE5Ozk7PTtBQkFCQkJDQ0Nna2eGhoaHh4ezuLLGysbd3d1wVGpAAAAA0klEQVR42q2T1xbCIAyGk0CXdlmto3XvPd7/5QRL1432WHI4XED4+PMHALQHag0JJBlXMNQScx2ibu9PdTnQcY3iErYl6oxbAo/rUrUJA6J5vx0wNNC0gVkMbBPZXtQ8Uf6qpNJwOf0EjmCKto+ce1aSIg9FzTO1/xlYyVeL34FDMC3ZFT+SNXOX6PEsBKm0rIOYPYuGClnsWTxBHtQV1gRhI4UUGJh6EAsPoxdedjUPK+dzT38DDyvNXXYW9wJ43mh4h6ItN8U7Ldv+FN1/WXO8Aed5CQIgC4KiAAAAAElFTkSuQmCC" /></a>This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+    
+    </small>
+</footer>
+
+</div>
+
+    </div>
+
+    <label for="sidebar-checkbox" class="sidebar-toggle"></label>
+
+    <script>
+     (function(document) {
+       var toggle = document.querySelector('.sidebar-toggle');
+       var sidebar = document.querySelector('#sidebar');
+       var checkbox = document.querySelector('#sidebar-checkbox');
+
+       document.addEventListener('click', function(e) {
+         var target = e.target;
+
+         if(!checkbox.checked ||
+            sidebar.contains(target) ||
+            (target === checkbox || target === toggle)) return;
+
+         checkbox.checked = false;
+       }, false);
+     })(document);
+    </script>
+
+  </body>
+</html>

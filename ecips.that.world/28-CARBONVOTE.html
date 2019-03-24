@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  <!-- Enable responsiveness on mobile devices-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <meta property="og:title" content="28-CARBONVOTE: Combined CarbonVote and MinerVote for Consensus Soft and Hard Forks">
+  
+  <meta property="og:site_name" content="Ethereum Classic Improvement Proposals">
+  <meta name="author" content="Wei Tang">
+
+  
+  <meta property="og:type" content="article">
+  <meta property="article:published_time" content="2019-03-19T09:23:20+01:00">
+  
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="28-CARBONVOTE: Combined CarbonVote and MinerVote for Consensus Soft and Hard Forks">
+  
+  <meta name="twitter:site" content="@sorpaas">
+
+  <title>
+    
+      28-CARBONVOTE: Combined CarbonVote and MinerVote for Consensus Soft and Hard Forks &middot; Ethereum Classic Improvement Proposals
+    
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/styles.css">
+</head>
+
+  <body>
+    <!-- Target for toggling the sidebar `.sidebar-checkbox` is for regular
+     styles, `#sidebar-checkbox` for behavior. -->
+<input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox">
+
+<!-- Toggleable sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-item">
+    <p><p>Collections of Ethereum Classic Improvement Proposals</p>
+</p>
+  </div>
+
+  <nav class="sidebar-nav">
+    
+
+    <a class="sidebar-nav-item" href="/">
+      Home
+      </a>
+    
+    
+    
+    
+    <a class="sidebar-nav-item" href="/raw/">Raw</a>
+    
+    
+    
+    <a class="sidebar-nav-item" href="/draft/">Draft</a>
+    
+    
+    
+    <a class="sidebar-nav-item" href="/stable/">Stable</a>
+    
+    
+    
+    <a class="sidebar-nav-item" href="/deprecated/">Deprecated</a>
+    
+    
+  </nav>
+
+  <div class="sidebar-item">
+    <p>
+      &copy; 2019.
+      All rights reserved.
+      
+    </p>
+  </div>
+</div>
+
+
+    <!-- Wrap is the content to shift when toggling the sidebar. We wrap the
+         content to avoid any CSS collisions with our real content. -->
+    <div class="wrap">
+      
+
+<div class="container content">
+  <div class="page-header">
+    <div class="row">
+      <h1>28-CARBONVOTE</h1>
+      <p>Combined CarbonVote and MinerVote for Consensus Soft and Hard Forks</p>
+
+      <table>
+        <tr><th>URI</th><td>ecips.that.world/28-CARBONVOTE</td></tr>
+        <tr><th>Author</th><td>Wei Tang &lt;hi@that.world&gt;</td></tr>
+        
+        <tr><th>Status</th><td>Raw</td></tr>
+        <tr><th>Type</th><td>Standard Track</td></tr>
+        
+        <tr><th>Category</th><td>Core</td></tr>
+        
+        
+        <tr><th>Created</th><td>2017-06-28</td></tr>
+        
+        
+        
+        
+        
+      </table>
+    </div>
+  </div>
+
+  <div class="page-content">
+    <h2 id="abstract">Abstract</h2>
+
+<p>The following ECIP tries to combine a enforced version of Ethereum CarbonVote and the best practices about how Bitcoin deals with consensus hard fork (<a href="https://github.com/bitcoin/bips/blob/master/bip-0009.mediawiki">BIP-9</a> and <a href="https://github.com/bitcoin/bips/blob/master/bip-0135.mediawiki">BIP-135</a>) into Ethereum Classic using smart contracts. Rather than hard-code a block number as we currently do, each miner and ETC coin holders emits support of the new consensus hard-fork. Only when a large enough portion of the network support it, the hard-fork is “locked-in” and will be activated.</p>
+
+<p>This should be used in combination with ECIP-1022 for its best effect.</p>
+
+<h2 id="motivation">Motivation</h2>
+
+<p>In addition to the motivation provided in ECIP-1022:</p>
+
+<p><strong>ETC coin holders are important</strong>. Holders of coins should also have sayings about whether a hard fork should occur. CarbonVote, if it can be enforced, is a good way to do this.</p>
+
+<p><strong>Minimal cost for miners to emit support</strong>. The cost for miners to emit support should be minimal.</p>
+
+<h2 id="specification">Specification</h2>
+
+<h3 id="fork-deployment-parameters">Fork deployment parameters</h3>
+
+<p>In addition to the fork deployment parameters defined in ECIP-1022, the following should also exist:</p>
+
+<ul>
+  <li><strong>carbonVoteYesAddress</strong> the address for carbon vote YES.</li>
+  <li><strong>carbonVoteNoAddress</strong> the address for carbon vote NO.</li>
+  <li><strong>carbonThreshold</strong> specifies the portion * 1000 required, in the entire start..(start + timeout) blocks, which should vote YES.</li>
+</ul>
+
+<h3 id="carbon-vote">Carbon Vote</h3>
+
+<p>Besides defining the signaling bits for miners to vote, the implementor of the hard fork should also deploy two new smart contracts (YES and NO) to the ETC network with the code below:</p>
+
+<div class="highlighter-rouge"><div class="highlight"><pre class="highlight"><code>contract Vote {
+    event LogVote(address indexed addr);
+
+    function() {    
+        LogVote(msg.sender);
+
+        if (msg.value &gt; 0) {
+            msg.sender.send(msg.value);
+        }
+    }
+}
+</code></pre></div></div>
+
+<p>ETC holders can vote YES and NO by sending a zero value transaction to any of those contracts.</p>
+
+<h3 id="miner-vote">Miner vote</h3>
+
+<p>The miner will use the voting method defined in ECIP-1022 to conduct the voting.</p>
+
+<h3 id="deployment-states">Deployment states</h3>
+
+<p>To make the voting pass (i.e. status changing from <strong>STARTED</strong> to <strong>LOCKED_IN</strong>), at each voting window, besides requiring the threshold out of windowsize blocks to have the associated bit set in <code class="highlighter-rouge">signalingBits</code> in <code class="highlighter-rouge">extraData</code> block header, it also requires the portion of ETC coins that voted YES in the Carbon Vote smart contracts &gt;= (carbonThreshold / 1000000).</p>
+
+<p>Before implementing a hard fork, the implementor should deploy a smart contract for voting (referred to as <em>The Contract</em>) to the ETC network that has the following properties.</p>
+
+<h2 id="rationale">Rationale</h2>
+
+<p>Miners continue to use <code class="highlighter-rouge">signalingBits</code> in the <code class="highlighter-rouge">extraData</code> field to vote, as this is the way with minimal cost for them (and also does not require any protocol change). The consensus is reached jointly by miners and coin holders for a hard fork to pass.</p>
+
+  </div>
+
+  <footer class="footer">
+  <small>
+    
+    <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAAAPCAMAAABEF7i9AAAAllBMVEUAAAD///+rsapERER3d3eIiIjMzMzu7u4iIiKUmZO6v7rKzsoODg4RERFVVVUNDQ0NDg0PEA8zMzNLTEtbXltmZmZydnF9gn2AgICPkI+ZmZmqqqq7u7vFxsXIzMgNDQwZGRkgICAhISEkJSMnKCcuMC4xMzE5Ozk7PTtBQkFCQkJDQ0Nna2eGhoaHh4ezuLLGysbd3d1wVGpAAAAA0klEQVR42q2T1xbCIAyGk0CXdlmto3XvPd7/5QRL1432WHI4XED4+PMHALQHag0JJBlXMNQScx2ibu9PdTnQcY3iErYl6oxbAo/rUrUJA6J5vx0wNNC0gVkMbBPZXtQ8Uf6qpNJwOf0EjmCKto+ce1aSIg9FzTO1/xlYyVeL34FDMC3ZFT+SNXOX6PEsBKm0rIOYPYuGClnsWTxBHtQV1gRhI4UUGJh6EAsPoxdedjUPK+dzT38DDyvNXXYW9wJ43mh4h6ItN8U7Ldv+FN1/WXO8Aed5CQIgC4KiAAAAAElFTkSuQmCC" /></a>This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+    
+    </small>
+</footer>
+
+</div>
+
+    </div>
+
+    <label for="sidebar-checkbox" class="sidebar-toggle"></label>
+
+    <script>
+     (function(document) {
+       var toggle = document.querySelector('.sidebar-toggle');
+       var sidebar = document.querySelector('#sidebar');
+       var checkbox = document.querySelector('#sidebar-checkbox');
+
+       document.addEventListener('click', function(e) {
+         var target = e.target;
+
+         if(!checkbox.checked ||
+            sidebar.contains(target) ||
+            (target === checkbox || target === toggle)) return;
+
+         checkbox.checked = false;
+       }, false);
+     })(document);
+    </script>
+
+  </body>
+</html>

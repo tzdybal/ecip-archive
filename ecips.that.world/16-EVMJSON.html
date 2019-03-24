@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  <!-- Enable responsiveness on mobile devices-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <meta property="og:title" content="16-EVMJSON: Ethereum Virtual Machine JSON-RPC">
+  
+  <meta property="og:site_name" content="Ethereum Classic Improvement Proposals">
+  <meta name="author" content="Wei Tang">
+
+  
+  <meta property="og:type" content="article">
+  <meta property="article:published_time" content="2019-03-19T09:23:20+01:00">
+  
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="16-EVMJSON: Ethereum Virtual Machine JSON-RPC">
+  
+  <meta name="twitter:site" content="@sorpaas">
+
+  <title>
+    
+      16-EVMJSON: Ethereum Virtual Machine JSON-RPC &middot; Ethereum Classic Improvement Proposals
+    
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/styles.css">
+</head>
+
+  <body>
+    <!-- Target for toggling the sidebar `.sidebar-checkbox` is for regular
+     styles, `#sidebar-checkbox` for behavior. -->
+<input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox">
+
+<!-- Toggleable sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-item">
+    <p><p>Collections of Ethereum Classic Improvement Proposals</p>
+</p>
+  </div>
+
+  <nav class="sidebar-nav">
+    
+
+    <a class="sidebar-nav-item" href="/">
+      Home
+      </a>
+    
+    
+    
+    
+    <a class="sidebar-nav-item" href="/raw/">Raw</a>
+    
+    
+    
+    <a class="sidebar-nav-item" href="/draft/">Draft</a>
+    
+    
+    
+    <a class="sidebar-nav-item" href="/stable/">Stable</a>
+    
+    
+    
+    <a class="sidebar-nav-item" href="/deprecated/">Deprecated</a>
+    
+    
+  </nav>
+
+  <div class="sidebar-item">
+    <p>
+      &copy; 2019.
+      All rights reserved.
+      
+    </p>
+  </div>
+</div>
+
+
+    <!-- Wrap is the content to shift when toggling the sidebar. We wrap the
+         content to avoid any CSS collisions with our real content. -->
+    <div class="wrap">
+      
+
+<div class="container content">
+  <div class="page-header">
+    <div class="row">
+      <h1>16-EVMJSON</h1>
+      <p>Ethereum Virtual Machine JSON-RPC</p>
+
+      <table>
+        <tr><th>URI</th><td>ecips.that.world/16-EVMJSON</td></tr>
+        <tr><th>Author</th><td>Wei Tang &lt;hi@that.world&gt;</td></tr>
+        
+        <tr><th>Discussions-To</th><td><a href="https://github.com/ethoxy/specs/issues/3">https://github.com/ethoxy/specs/issues/3</a></td></tr>
+        
+        <tr><th>Status</th><td>Raw</td></tr>
+        <tr><th>Type</th><td>Standard Track</td></tr>
+        
+        <tr><th>Category</th><td>Interface</td></tr>
+        
+        
+        <tr><th>Created</th><td>2017-11-22</td></tr>
+        
+        
+        
+        
+        
+      </table>
+    </div>
+  </div>
+
+  <div class="page-content">
+    <h2 id="overview">Overview</h2>
+
+<p>JSON-RPC is a stateless, lightweight remote procedure call (RPC)
+protocol. This specification describes the JSON-RPC API that should be
+provided by an EVM implementation.</p>
+
+<h2 id="conventions">Conventions</h2>
+
+<p>The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL
+NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "MAY", and
+"OPTIONAL" in this document are to be interpreted as described in RFC
+2119.</p>
+
+<h2 id="endpoint">Endpoint</h2>
+
+<p>An EVM that supports JSON-RPC MUST provide an endpoint for calling.</p>
+
+<h2 id="hex-value-encoding">Hex Value Encoding</h2>
+
+<p>Bytearrays are transferred using hex value encoding. The string MAY
+optionally start with "0x" followed by 0-9a-f. The string MUST be even
+number of digits.</p>
+
+<p>As a result, several hex value encodings that are considered wrong in
+Ethereum JSON-RPC ("0x", for example, in this specification represents
+an empty bytearray) would have no problem in EVM JSON-RPC.</p>
+
+<h2 id="methods">Methods</h2>
+
+<h3 id="evm_create"><code class="highlighter-rouge">evm_create</code></h3>
+
+<p>Creates a new VM using the given block header and context. It returns an
+ID that represents this VM.</p>
+
+<h4 id="parameters">Parameters</h4>
+
+<ol>
+  <li><code class="highlighter-rouge">BlockHeader</code> struct: contains the block header information.</li>
+  <li><code class="highlighter-rouge">Context</code> struct: contains the current execution context.</li>
+  <li><code class="highlighter-rouge">Patch</code>: a unique number that represents the current patch version
+of the block.</li>
+</ol>
+
+<h5 id="blockheader-fields"><code class="highlighter-rouge">BlockHeader</code> Fields</h5>
+
+<ul>
+  <li><code class="highlighter-rouge">coinbase</code>: 20 bytes address.</li>
+  <li><code class="highlighter-rouge">timestamp</code>: 32 bytes.</li>
+  <li><code class="highlighter-rouge">number</code>: 32 bytes.</li>
+  <li><code class="highlighter-rouge">difficulty</code>: 32 bytes.</li>
+  <li><code class="highlighter-rouge">gas_limit</code>: 32 bytes gas.</li>
+</ul>
+
+<h5 id="context-fields"><code class="highlighter-rouge">Context</code> Fields</h5>
+
+<ul>
+  <li><code class="highlighter-rouge">address</code>: 20 bytes address.</li>
+  <li><code class="highlighter-rouge">caller</code>: 20 bytes address.</li>
+  <li><code class="highlighter-rouge">code</code>: bytearray for the code to run.</li>
+  <li><code class="highlighter-rouge">data</code>: bytearray for the data to be passed. Should be empty when
+the transaction is contract creation.</li>
+  <li><code class="highlighter-rouge">gas_limit</code>: 32 bytes.</li>
+  <li><code class="highlighter-rouge">gas_price</code>: 32 bytes.</li>
+  <li><code class="highlighter-rouge">origin</code>: 20 bytes address. Usually the same as <code class="highlighter-rouge">caller</code>.</li>
+  <li><code class="highlighter-rouge">value</code>: ether to be passed in this transaction. The client is
+responsible to make sure that the caller has enough balance to pay.</li>
+</ul>
+
+<h4 id="returns">Returns</h4>
+
+<p>An integer that represents the current VM.</p>
+
+<h3 id="evm_fire"><code class="highlighter-rouge">evm_fire</code></h3>
+
+<p>Fire an existing VM.</p>
+
+<h4 id="parameters-1">Parameters</h4>
+
+<ol>
+  <li><code class="highlighter-rouge">evm_id</code>: an integer that is the VM id.</li>
+</ol>
+
+<h4 id="returns-1">Returns</h4>
+
+<p>Either <code class="highlighter-rouge">"ok"</code>, <code class="highlighter-rouge">{"requireAccount": "{address}"}</code>,
+<code class="highlighter-rouge">{"requireAccountCode": "{address}"}</code> or
+<code class="highlighter-rouge">{"requireBlockhash": "{number}"}</code>.</p>
+
+<h3 id="evm_commit_account"><code class="highlighter-rouge">evm_commit_account</code></h3>
+
+<p>Commit an account into the VM. The client is then not supposed to modify
+the account if it wants to accept the result of the VM later.</p>
+
+<h4 id="parameters-2">Parameters</h4>
+
+<ol>
+  <li><code class="highlighter-rouge">evm_id</code>: an integer that is the VM id.</li>
+  <li><code class="highlighter-rouge">address</code>: 20 bytes address.</li>
+  <li><code class="highlighter-rouge">Account</code> struct: contains the full account information.</li>
+</ol>
+
+<h5 id="account-fields"><code class="highlighter-rouge">Account</code> fields</h5>
+
+<ul>
+  <li><code class="highlighter-rouge">nonce</code>: 32 bytes.</li>
+  <li><code class="highlighter-rouge">balance</code>: 32 bytes.</li>
+  <li><code class="highlighter-rouge">storage</code>: a struct, where the key is a non-zero-value index, and
+the value is the corresponding value in the storage.</li>
+  <li><code class="highlighter-rouge">code</code>: bytearray for the code in the account.</li>
+</ul>
+
+<h4 id="returns-2">Returns</h4>
+
+<p>Either <code class="highlighter-rouge">"ok"</code> or <code class="highlighter-rouge">{"error": "{message}"}</code>.</p>
+
+<h3 id="evm_commit_account_code"><code class="highlighter-rouge">evm_commit_account_code</code></h3>
+
+<p>Commit the code of an account into the VM.</p>
+
+<h4 id="parameters-3">Parameters</h4>
+
+<ol>
+  <li><code class="highlighter-rouge">evm_id</code>: an integer that is the VM id.</li>
+  <li><code class="highlighter-rouge">address</code>: 20 bytes address.</li>
+  <li><code class="highlighter-rouge">code</code>: bytearray for the code in the account.</li>
+</ol>
+
+<h4 id="returns-3">Returns</h4>
+
+<p>Either <code class="highlighter-rouge">"ok"</code> or <code class="highlighter-rouge">{"error": "{message}"}</code>.</p>
+
+<h3 id="evm_commit_blockhash"><code class="highlighter-rouge">evm_commit_blockhash</code></h3>
+
+<p>Commit a blockhash into the VM.</p>
+
+<h4 id="parameters-4">Parameters</h4>
+
+<ol>
+  <li><code class="highlighter-rouge">evm_id</code>: an integer that is the VM id.</li>
+  <li><code class="highlighter-rouge">number</code>: 32 bytes.</li>
+  <li><code class="highlighter-rouge">hash</code>: 32 bytes.</li>
+</ol>
+
+<h4 id="returns-4">Returns</h4>
+
+<p>Either <code class="highlighter-rouge">"ok"</code> or <code class="highlighter-rouge">{"error": "{message}"}</code>.</p>
+
+<h3 id="evm_accounts"><code class="highlighter-rouge">evm_accounts</code></h3>
+
+<p>Returns the current account status in the VM.</p>
+
+<h4 id="parameters-5">Parameters</h4>
+
+<ol>
+  <li><code class="highlighter-rouge">evm_id</code>: an integer that is the VM id.</li>
+</ol>
+
+<h4 id="returns-5">Returns</h4>
+
+<p>A struct.</p>
+
+<ul>
+  <li><code class="highlighter-rouge">fulls</code>: a struct where key is an address, and value is an <code class="highlighter-rouge">Account</code>
+struct.</li>
+  <li><code class="highlighter-rouge">increases</code>: balances to increase for accounts. Key is an address,
+and value is the balance to be increased.</li>
+</ul>
+
+<h3 id="evm_appending_logs"><code class="highlighter-rouge">evm_appending_logs</code></h3>
+
+<p>Returns the logs to be appended if the client decides to accept the
+VM's result.</p>
+
+<h4 id="parameters-6">Parameters</h4>
+
+<ol>
+  <li><code class="highlighter-rouge">evm_id</code>: an integer that is the VM id.</li>
+</ol>
+
+<h4 id="returns-6">Returns</h4>
+
+<p>An ordered array, where values are <code class="highlighter-rouge">Log</code> structs.</p>
+
+<h5 id="log-fields"><code class="highlighter-rouge">Log</code> Fields</h5>
+
+<ul>
+  <li><code class="highlighter-rouge">address</code>: 20 bytes address.</li>
+  <li><code class="highlighter-rouge">data</code>: bytearray for the data of the log.</li>
+  <li><code class="highlighter-rouge">topics</code>: array of 32 bytes.</li>
+</ul>
+
+<h3 id="evm_out"><code class="highlighter-rouge">evm_out</code></h3>
+
+<p>Returns the out value of the VM execution result.</p>
+
+<h4 id="parameters-7">Parameters</h4>
+
+<ol>
+  <li><code class="highlighter-rouge">evm_id</code>: an integer that is the VM id.</li>
+</ol>
+
+<h4 id="returns-7">Returns</h4>
+
+<p>A bytearray that is the out value of the VM.</p>
+
+  </div>
+
+  <footer class="footer">
+  <small>
+    
+    <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAAAPCAMAAABEF7i9AAAAllBMVEUAAAD///+rsapERER3d3eIiIjMzMzu7u4iIiKUmZO6v7rKzsoODg4RERFVVVUNDQ0NDg0PEA8zMzNLTEtbXltmZmZydnF9gn2AgICPkI+ZmZmqqqq7u7vFxsXIzMgNDQwZGRkgICAhISEkJSMnKCcuMC4xMzE5Ozk7PTtBQkFCQkJDQ0Nna2eGhoaHh4ezuLLGysbd3d1wVGpAAAAA0klEQVR42q2T1xbCIAyGk0CXdlmto3XvPd7/5QRL1432WHI4XED4+PMHALQHag0JJBlXMNQScx2ibu9PdTnQcY3iErYl6oxbAo/rUrUJA6J5vx0wNNC0gVkMbBPZXtQ8Uf6qpNJwOf0EjmCKto+ce1aSIg9FzTO1/xlYyVeL34FDMC3ZFT+SNXOX6PEsBKm0rIOYPYuGClnsWTxBHtQV1gRhI4UUGJh6EAsPoxdedjUPK+dzT38DDyvNXXYW9wJ43mh4h6ItN8U7Ldv+FN1/WXO8Aed5CQIgC4KiAAAAAElFTkSuQmCC" /></a>This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+    
+    </small>
+</footer>
+
+</div>
+
+    </div>
+
+    <label for="sidebar-checkbox" class="sidebar-toggle"></label>
+
+    <script>
+     (function(document) {
+       var toggle = document.querySelector('.sidebar-toggle');
+       var sidebar = document.querySelector('#sidebar');
+       var checkbox = document.querySelector('#sidebar-checkbox');
+
+       document.addEventListener('click', function(e) {
+         var target = e.target;
+
+         if(!checkbox.checked ||
+            sidebar.contains(target) ||
+            (target === checkbox || target === toggle)) return;
+
+         checkbox.checked = false;
+       }, false);
+     })(document);
+    </script>
+
+  </body>
+</html>

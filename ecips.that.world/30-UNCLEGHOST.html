@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <link href="http://gmpg.org/xfn/11" rel="profile">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+
+  <!-- Enable responsiveness on mobile devices-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+
+  <meta property="og:title" content="30-UNCLEGHOST: Include Uncles in Total Difficulty Calculation">
+  
+  <meta property="og:site_name" content="Ethereum Classic Improvement Proposals">
+  <meta name="author" content="Wei Tang">
+
+  
+  <meta property="og:type" content="article">
+  <meta property="article:published_time" content="2019-03-19T09:23:20+01:00">
+  
+
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="30-UNCLEGHOST: Include Uncles in Total Difficulty Calculation">
+  
+  <meta name="twitter:site" content="@sorpaas">
+
+  <title>
+    
+      30-UNCLEGHOST: Include Uncles in Total Difficulty Calculation &middot; Ethereum Classic Improvement Proposals
+    
+  </title>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="/styles.css">
+</head>
+
+  <body>
+    <!-- Target for toggling the sidebar `.sidebar-checkbox` is for regular
+     styles, `#sidebar-checkbox` for behavior. -->
+<input type="checkbox" class="sidebar-checkbox" id="sidebar-checkbox">
+
+<!-- Toggleable sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-item">
+    <p><p>Collections of Ethereum Classic Improvement Proposals</p>
+</p>
+  </div>
+
+  <nav class="sidebar-nav">
+    
+
+    <a class="sidebar-nav-item" href="/">
+      Home
+      </a>
+    
+    
+    
+    
+    <a class="sidebar-nav-item" href="/raw/">Raw</a>
+    
+    
+    
+    <a class="sidebar-nav-item" href="/draft/">Draft</a>
+    
+    
+    
+    <a class="sidebar-nav-item" href="/stable/">Stable</a>
+    
+    
+    
+    <a class="sidebar-nav-item" href="/deprecated/">Deprecated</a>
+    
+    
+  </nav>
+
+  <div class="sidebar-item">
+    <p>
+      &copy; 2019.
+      All rights reserved.
+      
+    </p>
+  </div>
+</div>
+
+
+    <!-- Wrap is the content to shift when toggling the sidebar. We wrap the
+         content to avoid any CSS collisions with our real content. -->
+    <div class="wrap">
+      
+
+<div class="container content">
+  <div class="page-header">
+    <div class="row">
+      <h1>30-UNCLEGHOST</h1>
+      <p>Include Uncles in Total Difficulty Calculation</p>
+
+      <table>
+        <tr><th>URI</th><td>ecips.that.world/30-UNCLEGHOST</td></tr>
+        <tr><th>Author</th><td>Wei Tang &lt;hi@that.world&gt;</td></tr>
+        
+        <tr><th>Status</th><td>Raw</td></tr>
+        <tr><th>Type</th><td>Standard Track</td></tr>
+        
+        <tr><th>Category</th><td>Core</td></tr>
+        
+        
+        <tr><th>Created</th><td>2017-08-15</td></tr>
+        
+        
+        
+        
+        
+      </table>
+    </div>
+  </div>
+
+  <div class="page-content">
+    <h3 id="abstract">Abstract</h3>
+
+<p>This proposes to include uncle difficulty in total difficulty calcuation after <code class="highlighter-rouge">FORK_BLOCK</code>. New client will use a different <a href="https://github.com/ethereum/wiki/wiki/Ethereum-Wire-Protocol">Ethereum Wire Protocol</a> version number to broadcast the total difficulty calculated using the new formula. As a result, old clients will continue to function if soft-forked clients are the majority.</p>
+
+<h3 id="background">Background</h3>
+
+<p>Ethereum is advertised to use <a href="https://eprint.iacr.org/2013/881.pdf">GHOST protocol</a> for best chain selection. The calculation is done using “total difficulty”. The client will always select the chain with larger total difficulty. However, while uncles are included in blocks and miners are rewarded to include them, they do not participate in the calculation of total difficulty thus do not participate in the best chain selection. This deflicts the goal of GHOST protocol, which should always select the chain in which, including stale blocks, is the heaviest.</p>
+
+<p>Analysis by <a href="https://eprint.iacr.org/2016/555.pdf">Gervais et al.</a> has shown that, due to the above fact, Ethereum currently resembles a similar Proof of Work algorithm as Bitcoin. Besides, due to its fast block time (around 10 seconds) and growing block size, it is having a much larger orphan rate compared with other Proof of Work cryptocurrencies like Bitcoin, Litcoin and Dogecoin.</p>
+
+<h3 id="specification">Specification</h3>
+
+<p>Soft-forked clients support a new <a href="https://github.com/ethereum/wiki/wiki/Ethereum-Wire-Protocol">Ethereum Wire Protocol</a> version number <code class="highlighter-rouge">70</code>. Before <code class="highlighter-rouge">FORK_BLOCK</code>, version <code class="highlighter-rouge">70</code> works the same as the current version <code class="highlighter-rouge">63</code>. On or after <code class="highlighter-rouge">FORK_BLOCK</code>, change the total difficulty calculation from <code class="highlighter-rouge">B_t = B'_t + B_d</code> to <code class="highlighter-rouge">B_t = B'_t + sum(B_U_d) + B_d</code>. That is, to also sum up difficulty of uncles included in the current block and add it to the total difficulty.</p>
+
+<p>Clients are recommended to continue to support older version number <code class="highlighter-rouge">62</code> and <code class="highlighter-rouge">63</code>. <code class="highlighter-rouge">62</code> and <code class="highlighter-rouge">63</code> should continue to use the old total difficulty calculation formula (<code class="highlighter-rouge">B_t = B'_t + B_d</code>) on or after <code class="highlighter-rouge">FORK_BLOCK</code>.</p>
+
+<p>Soft-forked clients should use version <code class="highlighter-rouge">70</code>’s total difficulty (with or without uniform tie breaking) for best chain selection.</p>
+
+<h3 id="references">References</h3>
+
+<ul>
+  <li>Sompolinsky, Yonatan, and Aviv Zohar. “Accelerating bitcoin’s transaction processing.” Fast Money Grows on Trees, Not Chains (2013).</li>
+  <li>Gervais, Arthur, et al. “On the security and performance of proof of work blockchains.” Proceedings of the 2016 ACM SIGSAC Conference on Computer and Communications Security. ACM, 2016.</li>
+</ul>
+
+  </div>
+
+  <footer class="footer">
+  <small>
+    
+    <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/"><img alt="Creative Commons License" style="border-width:0" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAFAAAAAPCAMAAABEF7i9AAAAllBMVEUAAAD///+rsapERER3d3eIiIjMzMzu7u4iIiKUmZO6v7rKzsoODg4RERFVVVUNDQ0NDg0PEA8zMzNLTEtbXltmZmZydnF9gn2AgICPkI+ZmZmqqqq7u7vFxsXIzMgNDQwZGRkgICAhISEkJSMnKCcuMC4xMzE5Ozk7PTtBQkFCQkJDQ0Nna2eGhoaHh4ezuLLGysbd3d1wVGpAAAAA0klEQVR42q2T1xbCIAyGk0CXdlmto3XvPd7/5QRL1432WHI4XED4+PMHALQHag0JJBlXMNQScx2ibu9PdTnQcY3iErYl6oxbAo/rUrUJA6J5vx0wNNC0gVkMbBPZXtQ8Uf6qpNJwOf0EjmCKto+ce1aSIg9FzTO1/xlYyVeL34FDMC3ZFT+SNXOX6PEsBKm0rIOYPYuGClnsWTxBHtQV1gRhI4UUGJh6EAsPoxdedjUPK+dzT38DDyvNXXYW9wJ43mh4h6ItN8U7Ldv+FN1/WXO8Aed5CQIgC4KiAAAAAElFTkSuQmCC" /></a>This work is licensed under a <a rel="license" href="http://creativecommons.org/licenses/by-sa/4.0/">Creative Commons Attribution-ShareAlike 4.0 International License</a>.
+    
+    </small>
+</footer>
+
+</div>
+
+    </div>
+
+    <label for="sidebar-checkbox" class="sidebar-toggle"></label>
+
+    <script>
+     (function(document) {
+       var toggle = document.querySelector('.sidebar-toggle');
+       var sidebar = document.querySelector('#sidebar');
+       var checkbox = document.querySelector('#sidebar-checkbox');
+
+       document.addEventListener('click', function(e) {
+         var target = e.target;
+
+         if(!checkbox.checked ||
+            sidebar.contains(target) ||
+            (target === checkbox || target === toggle)) return;
+
+         checkbox.checked = false;
+       }, false);
+     })(document);
+    </script>
+
+  </body>
+</html>
